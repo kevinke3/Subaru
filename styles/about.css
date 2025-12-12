@@ -1,0 +1,102 @@
+/* styles/about.css */
+.page-hero {
+    height: 60vh;
+    background: linear-gradient(rgba(0, 51, 153, 0.8), rgba(0, 51, 153, 0.9)),
+                url('../images/watermark.jpg') center/cover no-repeat fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--subaru-white);
+    padding-top: 80px;
+}
+
+.page-hero h1 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    color: var(--subaru-white);
+    margin-bottom: 1rem;
+}
+
+.subtitle {
+    font-size: 1.5rem;
+    color: var(--subaru-silver);
+    font-weight: 300;
+}
+
+.about-content {
+    padding: 4rem 2rem;
+    background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.95)),
+                url('../images/watermark.jpg') center/cover no-repeat fixed;
+    min-height: 100vh;
+}
+
+.about-section {
+    margin-bottom: 3rem;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+.about-section:nth-child(1) { animation-delay: 0.2s; }
+.about-section:nth-child(2) { animation-delay: 0.4s; }
+.about-section:nth-child(3) { animation-delay: 0.6s; }
+.about-section:nth-child(4) { animation-delay: 0.8s; }
+
+.about-card {
+    background: var(--subaru-white);
+    padding: 3rem;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    border-left: 4px solid var(--subaru-red);
+}
+
+.about-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.about-card h2 {
+    color: var(--subaru-blue);
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.about-card h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: var(--subaru-red);
+}
+
+.about-card p {
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+    color: var(--text-light);
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .page-hero {
+        height: 50vh;
+        padding-top: 60px;
+    }
+    
+    .about-content {
+        padding: 2rem 1rem;
+    }
+    
+    .about-card {
+        padding: 2rem;
+    }
+}
