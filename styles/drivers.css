@@ -1,0 +1,394 @@
+/* styles/drivers.css */
+.drivers-container {
+    padding: 4rem 2rem;
+    background: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.98)),
+                url('../images/watermark.jpg') center/cover no-repeat fixed;
+    min-height: 100vh;
+}
+
+.drivers-intro {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 4rem;
+}
+
+.drivers-intro h2 {
+    color: var(--subaru-blue);
+    margin-bottom: 1.5rem;
+    position: relative;
+    display: inline-block;
+}
+
+.drivers-intro h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: var(--subaru-red);
+}
+
+.intro-text {
+    font-size: 1.2rem;
+    line-height: 1.8;
+    color: var(--text-light);
+}
+
+/* Drivers Grid */
+.drivers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 3rem;
+    margin-bottom: 5rem;
+}
+
+.driver-card {
+    background: var(--subaru-white);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+.driver-card:nth-child(1) { animation-delay: 0.2s; }
+.driver-card:nth-child(2) { animation-delay: 0.4s; }
+.driver-card:nth-child(3) { animation-delay: 0.6s; }
+.driver-card:nth-child(4) { animation-delay: 0.8s; }
+
+.driver-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.driver-image {
+    position: relative;
+    height: 300px;
+    overflow: hidden;
+}
+
+.driver-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.driver-card:hover .driver-image img {
+    transform: scale(1.1);
+}
+
+.driver-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, transparent 50%, rgba(0, 51, 153, 0.7));
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 1.5rem;
+}
+
+.driver-number {
+    background: var(--subaru-red);
+    color: var(--subaru-white);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: 3px solid var(--subaru-white);
+}
+
+.driver-content {
+    padding: 2rem;
+}
+
+.driver-content h3 {
+    color: var(--subaru-blue);
+    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+}
+
+.driver-meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--subaru-silver);
+}
+
+.driver-nationality,
+.driver-years {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.driver-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--subaru-gray);
+    border-radius: 8px;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--subaru-blue);
+}
+
+.driver-bio {
+    margin-bottom: 1.5rem;
+}
+
+.driver-bio p {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+.driver-quote {
+    background: linear-gradient(135deg, var(--subaru-gray), var(--subaru-white));
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--subaru-red);
+    font-style: italic;
+    position: relative;
+}
+
+.driver-quote p {
+    font-size: 1.1rem;
+    color: var(--subaru-dark);
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.quote-author {
+    color: var(--subaru-blue);
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: block;
+    text-align: right;
+}
+
+/* Team History */
+.team-history {
+    background: var(--subaru-white);
+    padding: 3rem;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    margin-bottom: 4rem;
+}
+
+.team-history h2 {
+    color: var(--subaru-blue);
+    margin-bottom: 3rem;
+    position: relative;
+    text-align: center;
+}
+
+.team-history h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: var(--subaru-red);
+}
+
+.history-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.history-card {
+    background: linear-gradient(135deg, var(--subaru-gray), var(--subaru-white));
+    padding: 1.5rem;
+    border-radius: 10px;
+    border-top: 4px solid var(--subaru-blue);
+    transition: var(--transition);
+}
+
+.history-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.history-card h4 {
+    color: var(--subaru-blue);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.history-card p {
+    color: var(--text-light);
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* Achievements */
+.achievements {
+    background: linear-gradient(135deg, var(--subaru-blue), var(--subaru-light-blue));
+    padding: 3rem;
+    border-radius: 15px;
+    color: var(--subaru-white);
+}
+
+.achievements h2 {
+    color: var(--subaru-white);
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.achievement-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    text-align: center;
+}
+
+.achievement-item {
+    transition: var(--transition);
+}
+
+.achievement-item:hover {
+    transform: scale(1.1);
+}
+
+.achievement-number {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: var(--subaru-white);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.achievement-label {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .drivers-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .drivers-grid {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .driver-image {
+        height: 250px;
+    }
+    
+    .team-history {
+        padding: 2rem;
+    }
+    
+    .achievements {
+        padding: 2rem;
+    }
+    
+    .achievement-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .drivers-container {
+        padding: 2rem 1rem;
+    }
+    
+    .drivers-intro {
+        margin-bottom: 2rem;
+    }
+    
+    .driver-content {
+        padding: 1.5rem;
+    }
+    
+    .driver-stats {
+        grid-template-columns: repeat(3, 1fr);
+        padding: 0.8rem;
+    }
+    
+    .history-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .achievement-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .achievement-number {
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .driver-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .driver-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .stat-value {
+        font-size: 1.3rem;
+    }
+    
+    .achievement-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
