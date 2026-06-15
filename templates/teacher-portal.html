@@ -1,0 +1,35 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Teacher Portal</h1><p>Classes, grading, attendance, and communication</p></div>
+</div>
+<div class="metrics-grid">
+  <div class="metric-card blue-accent"><div><div class="metric-icon blue"><i class="fas fa-users"></i></div><div class="metric-value">5</div><div class="metric-label">My Classes</div></div></div>
+  <div class="metric-card green-accent"><div><div class="metric-icon green"><i class="fas fa-check-circle"></i></div><div class="metric-value">92%</div><div class="metric-label">Avg. Attendance</div></div></div>
+  <div class="metric-card orange-accent"><div><div class="metric-icon orange"><i class="fas fa-file-pen"></i></div><div class="metric-value">14</div><div class="metric-label">Pending Grades</div></div></div>
+  <div class="metric-card red-accent"><div><div class="metric-icon red"><i class="fas fa-comments"></i></div><div class="metric-value">8</div><div class="metric-label">New Messages</div></div></div>
+</div>
+<div class="dashboard-2col" style="margin-bottom:20px;">
+  <div class="chart-container"><h4>Grade Distribution</h4><div class="chart-sub">Latest exam scores overview</div><div style="height:260px;"><canvas id="chart-main-grade-dist"></canvas></div></div>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px;">Today's Classes</div>
+    <div class="event-item"><div class="event-dot" style="background:var(--accent);"></div><div class="event-content"><div class="event-title">Grade 7 - Mathematics</div><div class="event-time">8:00 AM - 9:00 AM (Rm 12)</div></div></div>
+    <div class="event-item"><div class="event-dot" style="background:var(--info);"></div><div class="event-content"><div class="event-title">Grade 8 - Mathematics</div><div class="event-time">9:15 AM - 10:15 AM (Rm 15)</div></div></div>
+    <div class="event-item"><div class="event-dot" style="background:var(--success);"></div><div class="event-content"><div class="event-title">Grade 7 - Mathematics</div><div class="event-time">10:30 AM - 11:30 AM (Rm 12)</div></div></div>
+    <div class="event-item" style="border:none;"><div class="event-dot" style="background:var(--warning);"></div><div class="event-content"><div class="event-title">Grade 10 - Advanced Math</div><div class="event-time">1:00 PM - 2:00 PM (Rm 22)</div></div></div>
+  </div>
+</div>
+<div class="table-wrapper">
+  <div class="table-toolbar"><span style="font-weight:600;">Recent Grading Activity</span></div>
+  <div class="table-scroll"><table><thead><tr><th>Student</th><th>Subject</th><th>Class</th><th>Score</th><th>Grade</th><th>Date</th></tr></thead>
+    <tbody>
+      <tr><td>Faith Wambui</td><td>Mathematics</td><td>Grade 7</td><td>92</td><td><span class="badge badge-success">A</span></td><td>Today</td></tr>
+      <tr><td>Brian Kipchoge</td><td>Mathematics</td><td>Grade 8</td><td>87</td><td><span class="badge badge-success">A-</span></td><td>Today</td></tr>
+      <tr><td>Amina Hassan</td><td>Mathematics</td><td>Grade 7</td><td>73</td><td><span class="badge badge-warning">B+</span></td><td>Today</td></tr>
+      <tr><td>David Njoroge</td><td>Mathematics</td><td>Grade 8</td><td>61</td><td><span class="badge badge-danger">C</span></td><td>Yesterday</td></tr>
+      <tr><td>Grace Muthoni</td><td>Mathematics</td><td>Grade 10</td><td>95</td><td><span class="badge badge-success">A</span></td><td>Yesterday</td></tr>
+    </tbody></table></div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{const c=document.getElementById('chart-main-grade-dist');if(c&&!c.dataset.initialized){c.dataset.initialized='true';new Chart(c,{type:'bar',data:{labels:['A+','A','B+','B','C+','C','D'],datasets:[{label:'Students',data:[8,15,12,6,3,2,0],backgroundColor:['#0fb06b','#0fb06b','#3b82f6','#3b82f6','#ff9f2d','#ff9f2d','#ff2d55'],borderRadius:8,borderSkipped:false,barThickness:32}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(10,10,10,0.9)',bodyFont:{family:'Outfit'},padding:12,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{color:'rgba(0,0,0,0.45)',font:{family:'Outfit',size:11}}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'rgba(0,0,0,0.45)',font:{family:'Outfit',size:11}}}}}}});}});</script>
+{% endblock %}

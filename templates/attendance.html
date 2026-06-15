@@ -1,0 +1,39 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Attendance</h1><p>Daily tracking and absentee monitoring</p></div>
+  <button class="btn btn-primary" onclick="openModal('newSessionModal')"><i class="fas fa-calendar-plus"></i> New Session</button>
+</div>
+<div class="metrics-grid" style="grid-template-columns:repeat(4,1fr);" id="attendance-metrics">
+  <div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+  <button class="btn btn-primary btn-sm" onclick="loadAttendance()">Refresh</button>
+  <input type="date" class="form-input" style="width:auto;" id="attDate" value="2026-06-07">
+  <button class="btn btn-secondary btn-sm" onclick="showToast('Report downloading...','info')"><i class="fas fa-download"></i> Export Report</button>
+</div>
+<div class="table-wrapper">
+  <div class="table-toolbar"><span style="font-weight:600;" id="attCount">Loading...</span></div>
+  <div class="table-scroll"><table><thead><tr><th>Student</th><th>Date</th><th>Class</th><th>Status</th><th>Remarks</th></tr></thead><tbody id="att-table"><tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-tertiary);">Loading...</td></tr></tbody></table></div>
+</div>
+<div class="modal-overlay" id="newSessionModal">
+  <div class="modal"><div class="modal-header"><h3>New Attendance Session</h3><button class="icon-btn" onclick="closeModal('newSessionModal')"><i class="fas fa-times"></i></button></div><div class="modal-body">
+    <div class="form-row"><div class="form-group"><label class="form-label">Class</label><select class="form-input" id="sCls"><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option></select></div>
+    <div class="form-group"><label class="form-label">Subject</label><select class="form-input" id="sSub"><option>Mathematics</option><option>English</option><option>Science</option></select></div></div>
+    <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="sDate"></div>
+  </div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('newSessionModal')">Cancel</button><button class="btn btn-primary" onclick="createSession()">Open Session</button></div></div>
+</div>
+<script async>
+async function loadAttendance(){
+  const [sum,records] = await Promise.all([api('/api/attendance/summary').catch(()=>[]),api('/api/attendance/sessions').catch(()=>[]).then(r=>Array.isArray(r)?r:[])]);
+  const mg=$('#attendance-metrics'); if(mg&&Array.isArray(sum)){const p=sum.reduce((a,x)=>a+x.present,0),ab=sum.reduce((a,x)=>a+x.absent,0),la=sum.reduce((a,x)=>a+x.late,0);mg.innerHTML=`<div class="metric-card"><div><div class="metric-icon blue"><i class="fas fa-user-check"></i></div><div class="metric-value">${p}</div><div class="metric-label">Present Today</div></div></div><div class="metric-card"><div><div class="metric-icon red"><i class="fas fa-user-xmark"></i></div><div class="metric-value">${ab}</div><div class="metric-label">Absent Today</div></div></div><div class="metric-card"><div><div class="metric-icon orange"><i class="fas fa-clock"></i></div><div class="metric-value">${la}</div><div class="metric-label">Late Arrivals</div></div></div><div class="metric-card"><div><div class="metric-icon green"><i class="fas fa-percent"></i></div><div class="metric-value">${sum.length?Math.round(p/(p+ab+la)*100):0}%</div><div class="metric-label">Attendance Rate</div></div></div>`;animateCounters();}
+  renderAttendance(records);
+}
+function renderAttendance(list){
+  const tb=$('#att-table'); if(!tb)return;
+  tb.innerHTML=list.map(r=>`<tr><td><div style="display:flex;align-items:center;gap:10px;"><div class="avatar" style="width:30px;height:30px;font-size:var(--font-xs);">${(r.student_name||'?').split(' ').map(n=>n[0]).join('').slice(0,2)}</div><span>${r.student_name}</span></div></td><td>${r.date}</td><td>${r.class_name||'—'}</td><td><span class="badge badge-${r.status==='Present'?'success':r.status==='Absent'?'danger':'warning'}">${r.status}</span></td><td style="color:var(--text-tertiary);font-size:var(--font-sm);">${r.note||'—'}</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:32px;">No records</td></tr>';
+  const c=document.getElementById('attCount'); if(c)c.textContent=`${list.length} record${list.length!==1?'s':''}`;
+}
+async function createSession(){ const p={class_id:1,subject_id:1,date:$('#sDate').value};if(!p.date){showToast('Date required','error');return} const res=await api('/api/attendance/sessions',{method:'POST',body:JSON.stringify(p)}); if(res.id){showToast('Session created','success');closeModal('newSessionModal');loadAttendance()}else showToast(res.error||'Failed','error'); }
+document.addEventListener('DOMContentLoaded',loadAttendance);</script>
+{% endblock %}

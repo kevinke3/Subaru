@@ -1,0 +1,67 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Finance</h1><p>Fee management, invoicing, and payments</p></div>
+  <button class="btn btn-primary" onclick="openModal('newInvoiceModal')"><i class="fas fa-plus"></i> New Invoice</button>
+</div>
+<div class="metrics-grid" style="grid-template-columns:repeat(4,1fr);" id="finance-metrics">
+  <div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>
+</div>
+<div class="tabs" style="margin-bottom:20px;">
+  <button class="tab active" onclick="switchFinTab(this,'invoices')">Invoices</button>
+  <button class="tab" onclick="switchFinTab(this,'payments')">Payments</button>
+  <button class="tab" onclick="switchFinTab(this,'transactions')">Transactions</button>
+</div>
+<div id="invoices" class="table-wrapper">
+  <div class="table-toolbar"><span style="font-weight:600;">All Invoices</span><select class="form-input" style="width:auto;min-width:150px;font-size:var(--font-sm);" id="invStatus"><option value="">All Status</option><option>Unpaid</option><option>Partially Paid</option><option>Paid</option></select></div>
+  <div class="table-scroll"><table><thead><tr><th>Invoice</th><th>Student</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Due</th><th>Status</th><th>Action</th></tr></thead><tbody id="inv-tbody"><tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-tertiary);">Loading...</td></tr></tbody></table></div>
+</div>
+<div id="payments" class="table-wrapper" style="display:none;">
+  <div class="table-scroll"><table><thead><tr><th>Receipt</th><th>Invoice</th><th>Amount</th><th>Method</th><th>Reference</th><th>Date</th></tr></thead><tbody id="pmt-tbody"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-tertiary);">Loading...</td></tr></tbody></table></div>
+</div>
+<div id="transactions" class="table-wrapper" style="display:none;">
+  <div class="table-scroll"><table><thead><tr><th>ID</th><th>Type</th><th>Category</th><th>Amount</th><th>Description</th><th>Date</th></tr></thead><tbody id="tx-tbody"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-tertiary);">Loading...</td></tr></tbody></table></div>
+</div>
+<div class="modal-overlay" id="newInvoiceModal">
+  <div class="modal"><div class="modal-header"><h3>Create Invoice</h3><button class="icon-btn" onclick="closeModal('newInvoiceModal')"><i class="fas fa-times"></i></button></div><div class="modal-body">
+    <div class="form-group"><label class="form-label">Student</label><textarea class="form-input" placeholder="Sam Wairimu[SPEED:fast]" id="invStudent"></textarea></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Amount (KES)</label><input type="number" class="form-input" id="invAmt" value="25000"></div><div class="form-group"><label class="form-label">Due Date</label><input type="date" class="form-input" id="invDue"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Term</label><select class="form-input" id="invTerm"><option>Term 1</option><option>Term 2</option><option>Term 3</option></select></div><div class="form-group"><label class="form-label">Academic Year</label><input type="text" class="form-input" id="invAY" value="2025"></div></div>
+    <div class="form-group"><label class="form-label">Description (optional)</label><textarea class="form-input" id="invDesc" placeholder="Tuition fee for Term 1"></textarea></div>
+  </div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('newInvoiceModal')">Cancel</button><button class="btn btn-primary" onclick="createInvoice()">Create Invoice</button></div></div>
+</div>
+<div class="modal-overlay" id="recordPaymentModal">
+  <div class="modal"><div class="modal-header"><h3>Record Payment</h3><button class="icon-btn" onclick="closeModal('recordPaymentModal')"><i class="fas fa-times"></i></button></div><div class="modal-body">
+    <div class="form-group"><label class="form-label">Invoice ID</label><input type="number" class="form-input" id="pmtInvoiceId" placeholder="1"></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Amount (KES)</label><input type="number" class="form-input" id="pmtAmt" value="5000"></div><div class="form-group"><label class="form-label">Method</label><select class="form-input" id="pmtMethod"><option>Cash</option><option>M-Pesa</option><option>Bank Transfer</option><option>Cheque</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">M-Pesa Code (optional)</label><input class="form-input" id="pmtMpesa" placeholder="SAD123ABC"></div><div class="form-group"><label class="form-label">M-Pesa Phone</label><input class="form-input" id="pmtPhone" placeholder="+254 7XX XXX XXX"></div></div>
+    <div class="form-group"><label class="form-label">Reference</label><input class="form-input" id="pmtRef" placeholder="Optional reference"></div>
+  </div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('recordPaymentModal')">Cancel</button><button class="btn btn-primary" onclick="recordPayment()">Record Payment</button></div></div>
+</div>
+<script>
+function switchFinTab(btn,tabId){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');['invoices','payments','transactions'].forEach(id=>{const el=$('#'+id);if(el)el.style.display=id===tabId?'block':'none'});}
+async function loadFinance(){
+  const [invs,pmts,txs]=await Promise.all([api('/api/finance/invoices').catch(()=>[]),api('/api/finance/payments').catch(()=>[]),api('/api/finance/transactions').catch(()=>[])]);
+  const mg=$('#finance-metrics'); if(mg&&Array.isArray(invs)){const totalCol=invs.reduce((a,i)=>a+parseFloat(i.amount||0),0),totalPaid=invs.reduce((a,i)=>a+parseFloat(i.paid_amount||0),0),pending=invs.filter(i=>i.status!=='Paid').length,bal=totalCol-totalPaid;mg.innerHTML=`<div class="metric-card"><div><div class="metric-icon red"><i class="fas fa-file-invoice"></i></div><div class="metric-value">${invs.length}</div><div class="metric-label">Total Invoices</div></div></div><div class="metric-card"><div><div class="metric-icon green"><i class="fas fa-coins"></i></div><div class="metric-value">KES ${totalPaid.toLocaleString()}</div><div class="metric-label">Collected</div></div></div><div class="metric-card"><div><div class="metric-icon orange"><i class="fas fa-clock"></i></div><div class="metric-value">${pending}</div><div class="metric-label">Pending</div></div></div><div class="metric-card"><div><div class="metric-icon blue"><i class="fas fa-scale-balanced"></i></div><div class="metric-value">KES ${bal.toLocaleString()}</div><div class="metric-label">Outstanding</div></div></div>`;animateCounters();}
+  renderFinance(invs,pmts,txs);
+}
+function renderFinance(invs,pmts,txs){
+  const tb=$('#inv-tbody');if(tb&&Array.isArray(invs)){tb.innerHTML=invs.map(i=>`<tr><td><span style="font-weight:500;">${i.invoice_number}</span></td><td>${i.student_name}</td><td>KES ${parseFloat(i.amount||0).toLocaleString()}</td><td>KES ${parseFloat(i.paid_amount||0).toLocaleString()}</td><td>KES ${parseFloat(i.balance||0).toLocaleString()}</td><td>${i.due_date||'—'}</td><td><span class="badge badge-${i.status==='Paid'?'success':i.status==='Unpaid'?'danger':'warning'}">${i.status}</span></td><td><button class="btn btn-secondary btn-sm" onclick="openModal('recordPaymentModal');document.getElementById('pmtInvoiceId').value='${i.id}'">Pay</button><button class="btn btn-ghost btn-sm" onclick="showToast('Receipt','info')"><i class="fas fa-receipt"></i></button></td></tr>`).join('')||'<tr><td colspan="8" style="text-align:center;padding:32px;">No invoices</td></tr>';}
+  const ptb=$('#pmt-tbody');if(ptb&&Array.isArray(pmts)){ptb.innerHTML=pmts.map(p=>`<tr><td><span style="font-weight:500;">RCP-${p.id.toString().padStart(8,'0')}</span></td><td>${p.invoice_number}</td><td>KES ${parseFloat(p.amount).toLocaleString()}</td><td>${p.method}</td><td>${p.mpesa_code||p.reference||'—'}</td><td>${p.paid_at?p.paid_at.split('T')[0]:'—'}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:32px;">No payments</td></tr>';}
+  const tt=$('#tx-tbody');if(tt&&Array.isArray(txs)){tt.innerHTML=txs.map(t=>`<tr><td>TX-${t.id}</td><td><span class="badge badge-${t.type==='income'?'success':'danger'}">${t.type}</span></td><td>${t.category}</td><td>KES ${parseFloat(t.amount).toLocaleString()}</td><td>${t.description}</td><td>${t.created_at?t.created_at.split('T')[0]:'—'}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:32px;">No transactions</td></tr>';}
+}
+$('#invStatus').addEventListener('change',()=>{const s=$('#invStatus').value;api('/api/finance/invoices').then(r=>{if(Array.isArray(r))renderFinance([...r],[],[]);}).catch(()=>{});});
+async function createInvoice(){
+  const p={student_id:1,amount:parseFloat($('#invAmt').value),due_date:$('#invDue').value||null,term:$('#invTerm').value,academic_year:$('#invAY').value,description:$('#invDesc').value};
+  try{
+    const res=await api('/api/finance/invoices',{method:'POST',body:JSON.stringify(p)});if(res.id){showToast('Invoice created','success');closeModal('newInvoiceModal');loadFinance()}else showToast(res.error||'Failed','error');
+  }catch(e){showToast(e.message||'Error','error');}
+}
+async function recordPayment(){
+  const p={invoice_id:parseInt($('#pmtInvoiceId').value),amount:parseFloat($('#pmtAmt').value),method:$('#pmtMethod').value,mpesa_code:$('#pmtMpesa').value||undefined,mpesa_phone:$('#pmtPhone').value||undefined,reference:$('#pmtRef').value||undefined};
+  try{ const res=await api('/api/finance/payments',{method:'POST',body:JSON.stringify(p)});if(res.id){showToast('Payment recorded','success');closeModal('recordPaymentModal');loadFinance()}else showToast(res.error||'Failed','error'); }
+  catch(e){showToast(e.message||'Error','error');}
+}
+document.addEventListener('DOMContentLoaded',loadFinance);
+</script>
+{% endblock %}

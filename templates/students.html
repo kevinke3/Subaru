@@ -1,0 +1,133 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Students</h1>
+    <p>Manage enrolled students and their profiles</p>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('newStudentModal')"><i class="fas fa-plus"></i> Add Student</button>
+</div>
+
+<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+  <div class="search-box" style="flex:1;min-width:220px;">
+    <i class="fas fa-magnifying-glass" style="color:var(--text-tertiary);font-size:13px;"></i>
+    <input type="text" placeholder="Search by name, admission no..." id="searchStudents">
+  </div>
+  <select class="form-input" style="width:auto;min-width:160px;" id="filterGrade"><option value="">All Grades</option><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option></select>
+  <select class="form-input" style="width:auto;min-width:140px;" id="filterGender"><option value="">All Genders</option><option>Male</option><option>Female</option></select>
+</div>
+
+<div class="table-wrapper">
+  <div class="table-toolbar">
+    <span style="font-weight:600;" id="studentCount">Loading...</span>
+    <button class="btn btn-secondary btn-sm" onclick="exportCSV()"><i class="fas fa-download"></i> Export</button>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Student</th><th>Admission No.</th><th>Grade</th><th>Gender</th><th>Email</th><th>Actions</th></tr></thead>
+      <tbody id="students-tbody">
+        <tr><td colspan="6" style="text-align:center;color:var(--text-tertiary);padding:40px;"><div class="skeleton" style="height:80px;"></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="newStudentModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Register New Student</h3><button class="icon-btn" onclick="closeModal('newStudentModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">First Name</label><input type="text" class="form-input" id="sFirst" placeholder="First name"></div>
+        <div class="form-group"><label class="form-label">Last Name</label><input type="text" class="form-input" id="sLast" placeholder="Last name"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="sEmail" placeholder="student@school.edu"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input type="tel" class="form-input" id="sPhone" placeholder="+254 700 000 000"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Admission No.</label><input type="text" class="form-input" id="sAdm" placeholder="ADM-2024-001"></div>
+        <div class="form-group"><label class="form-label">Grade</label><select class="form-input" id="sGrade"><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Gender</label><select class="form-input" id="sGender"><option value="">Select</option><option>Male</option><option>Female</option></select></div>
+        <div class="form-group"><label class="form-label">Date of Birth</label><input type="date" class="form-input" id="sDob"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Address</label><textarea class="form-input" id="sAddr" placeholder="Residential address"></textarea></div>
+      <div class="form-group"><label class="form-label">Emergency Contact</label><input type="text" class="form-input" id="sEmerg" placeholder="Name & phone"></div>
+      <div class="form-group"><label class="form-label">Default Password</label><input type="text" class="form-input" value="changeme123" disabled></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('newStudentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createStudent()">Register Student</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let studentData = [];
+async function loadStudents() {
+  showToast('Loading students...', 'info');
+  const res = await api('/api/students');
+  if (Array.isArray(res)) {
+    studentData = res;
+    renderStudentRows(studentData);
+  } else {
+    $('#students-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-tertiary);">No students found</td></tr>';
+  }
+}
+function renderStudentRows(list) {
+  const tb = $('#students-tbody');
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-tertiary);">No students match your search</td></tr>'; return; }
+  tb.innerHTML = list.map(s => `
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:12px;"><div class="avatar">${s.name.split(' ').map(n=>n[0]).join('').slice(0,2)}</div><span style="font-weight:500;">${s.name}</span></div></td>
+      <td><span style="font-family:monospace;font-size:var(--font-sm);">${s.admission_number}</span></td>
+      <td><span class="badge badge-neutral">${s.grade_level}</span></td>
+      <td>${s.gender||'—'}</td>
+      <td style="color:var(--text-secondary);">${s.email}</td>
+      <td>
+        <button class="icon-btn" title="View" onclick="showToast('View feature coming soon')"><i class="fas fa-eye"></i></button>
+        <button class="icon-btn" title="Edit"><i class="fas fa-pen"></i></button>
+      </td>
+    </tr>`).join('');
+  $('#studentCount').textContent = `${list.length} student${list.length !== 1 ? 's' : ''} found`;
+}
+$('#searchStudents').addEventListener('input', filterStudents);
+$('#filterGrade').addEventListener('change', filterStudents);
+$('#filterGender').addEventListener('change', filterStudents);
+function filterStudents() {
+  const q = ($('#searchStudents').value || '').toLowerCase();
+  const grade = $('#filterGrade').value;
+  const gender = $('#filterGender').value;
+  const list = studentData.filter(s => {
+    const match = (!q || s.name.toLowerCase().includes(q) || s.admission_number.toLowerCase().includes(q) || s.email.toLowerCase().includes(q));
+    const gradematch = !grade || s.grade_level === grade;
+    const gmatch = !gender || s.gender === gender;
+    return match && gradematch && gmatch;
+  });
+  renderStudentRows(list);
+}
+async function createStudent() {
+  const payload = {
+    first_name: $('#sFirst').value,
+    last_name: $('#sLast').value,
+    email: $('#sEmail').value,
+    phone_number: $('#sPhone').value,
+    admission_number: $('#sAdm').value,
+    grade_level: $('#sGrade').value,
+    gender: $('#sGender').value,
+    date_of_birth: $('#sDob').value || null,
+    address: $('#sAddr').value,
+    emergency_contact: $('#sEmerg').value,
+  };
+  if (!payload.first_name || !payload.last_name || !payload.email || !payload.admission_number) {
+    showToast('Please fill in all required fields', 'error'); return;
+  }
+  try {
+    const res = await api('/api/students', { method: 'POST', body: JSON.stringify(payload) });
+    if (res.id) { showToast('Student registered successfully', 'success'); closeModal('newStudentModal'); loadStudents();
+    } else { showToast(res.error || 'Failed to create student', 'error'); }
+  } catch (e) { showToast(e.message || 'Network error', 'error'); }
+}
+function exportCSV() { showToast('Export feature coming soon', 'info'); }
+document.addEventListener('DOMContentLoaded', loadStudents);
+</script>
+{% endblock %}

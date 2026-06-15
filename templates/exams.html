@@ -1,0 +1,39 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Examinations</h1><p>Create exams, grade students, generate reports</p></div>
+  <button class="btn btn-primary" onclick="openModal('newExamModal')"><i class="fas fa-plus"></i> New Exam</button>
+</div>
+<div class="tabs" style="margin-bottom:20px;">
+  <button class="tab active" onclick="switchExamTab(this,'exams')">Exams</button>
+  <button class="tab" onclick="switchExamTab(this,'results')">Results</button>
+  <button class="tab" onclick="switchExamTab(this,'reports')">Report Cards</button>
+</div>
+<div id="exams" class="table-wrapper">
+  <div class="table-toolbar"><span style="font-weight:600;">All Exams</span></div>
+  <div class="table-scroll"><table><thead><tr><th>Name</th><th>Type</th><th>Grade</th><th>Term</th><th>Start Date</th><th>End Date</th><th>Status</th></tr></thead><tbody id="exams-tbody"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-tertiary);">Loading...</td></tr></tbody></table></div>
+</div>
+<div id="results" class="table-wrapper" style="display:none;">
+  <div class="table-toolbar"><span style="font-weight:600;">Exam Results</span></div>
+  <div class="table-scroll"><table><thead><tr><th>Exam</th><th>Student</th><th>Subject</th><th>Marks</th><th>Grade</th><th>Remarks</th></tr></thead><tbody id="results-tbody"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-tertiary);">Loading...</td></tr></tbody></table></div>
+</div>
+<div id="reports" class="card" style="display:none;"><div style="text-align:center;padding:40px;color:var(--text-tertiary);">Select a student to view report card / transcript</div></div>
+<div class="modal-overlay" id="newExamModal">
+  <div class="modal"><div class="modal-header"><h3>Create Exam</h3><button class="icon-btn" onclick="closeModal('newExamModal')"><i class="fas fa-times"></i></button></div><div class="modal-body">
+    <div class="form-group"><label class="form-label">Exam Name</label><input type="text" class="form-input" id="exName" placeholder="e.g. Mid-Term Exam 1"></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Type</label><select class="form-input" id="exType"><option>Mid-Term</option><option>End-Term</option><option>CAT</option><option>Mock</option><option>Assignment</option></select></div><div class="form-group"><label class="form-label">Grade Level</label><select class="form-input" id="exGrade"><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Start Date</label><input type="date" class="form-input" id="exStart"></div><div class="form-group"><label class="form-label">End Date</label><input type="date" class="form-input" id="exEnd"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Total Marks</label><input type="number" class="form-input" id="exTotal" value="100"></div><div class="form-group"><label class="form-label">Passing Marks</label><input type="number" class="form-input" id="exPass" value="50"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Term</label><select class="form-input" id="exTerm"><option>Term 1</option><option>Term 2</option><option>Term 3</option></select></div><div class="form-group"><label class="form-label">Academic Year</label><input type="text" class="form-input" id="exAY" value="2025"></div></div>
+  </div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('newExamModal')">Cancel</button><button class="btn btn-primary" onclick="createExam()">Create Exam</button></div></div>
+</div>
+<script>
+function switchExamTab(btn,tab){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');['exams','results','reports'].forEach(id=>{const e=$('#'+id);if(e)e.style.display=id===tab?'block':'none';});}
+async function loadExams(){
+  const exams=await api('/api/exams/exams').catch(()=>[]); const tb=$('#exams-tbody'); if(tb&&Array.isArray(exams)){tb.innerHTML=exams.map(e=>`<tr><td style="font-weight:500;">${e.name}</td><td>${e.exam_type}</td><td>${e.grade_level}</td><td>${e.term} ${e.academic_year}</td><td>${e.start_date||'—'}</td><td>${e.end_date||'—'}</td><td><span class="badge badge-${e.status==='Completed'?'success':e.status==='In Progress'?'info':'neutral'}">${e.status}</span></td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:32px;">No exams created</td></tr>';}
+  const results=await api('/api/exams/results').catch(()=>[]); const rb=$('#results-tbody'); if(rb&&Array.isArray(results)){rb.innerHTML=results.map(r=>`<tr><td>${r.exam_name}</td><td>${r.student_name}</td><td>${r.subject_name}</td><td style="font-weight:600;">${r.marks||'—'}</td><td><span class="badge badge-${typeof r.grade==='number'&&r.grade>=50?'success':'danger'}">${r.grade||'—'}</span></td><td style="font-size:var(--font-xs);color:var(--text-tertiary);">${r.remarks||''}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:32px;">No results</td></tr>';}
+}
+async function createExam(){const p={name:$('#exName').value,exam_type:$('#exType').value,grade_level:$('#exGrade').value,start_date:$('#exStart').value,end_date:$('#exEnd').value,total_marks:parseFloat($('#exTotal').value),passing_marks:parseFloat($('#exPass').value),term:$('#exTerm').value,academic_year:$('#exAY').value};if(!p.name){showToast('Exam name required','error');return} try{ const res=await api('/api/exams/exams',{method:'POST',body:JSON.stringify(p)});if(res.id){showToast('Exam created','success');closeModal('newExamModal');loadExams()}else showToast(res.error||'Failed','error'); } catch(e){ showToast(e.message||'Error','error'); } }
+document.addEventListener('DOMContentLoaded',loadExams);
+</script>
+{% endblock %}

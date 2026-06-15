@@ -1,0 +1,99 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Settings</h1><p>Manage account preferences and notifications</p></div>
+</div>
+<div class="dashboard-2col">
+  <div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title" style="margin-bottom:18px;">Profile Information</div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+        <div class="user-avatar" style="width:72px;height:72px;font-size:24px;border-radius:16px;" id="settings-avatar">U S</div>
+        <div><div style="font-weight:600;font-size:var(--font-lg);" id="settings-name">User Name</div><div style="color:var(--text-tertiary);font-size:var(--font-sm);" id="settings-role">User</div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">First Name</label><input type="text" class="form-input" id="setFirst" value=""></div>
+        <div class="form-group"><label class="form-label">Last Name</label><input type="text" class="form-input" id="setLast" value=""></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="setEmail" value=""></div>
+      <div class="form-group"><label class="form-label">Phone</label><input type="tel" class="form-input" id="setPhone" value=""></div>
+      <button class="btn btn-primary" onclick="updateProfile()">Save Changes</button>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:18px;">Change Password</div>
+      <div class="form-group"><label class="form-label">Current Password</label><input type="password" class="form-input" id="cpCurrent"></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-input" id="cpNew"></div><div class="form-group"><label class="form-label">Confirm</label><input type="password" class="form-input" id="cpConfirm"></div></div>
+      <button class="btn btn-secondary" onclick="changePassword()">Update Password</button>
+    </div>
+  </div>
+  <div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title" style="margin-bottom:18px;">Notification Preferences</div>
+      <div id="notifPrefs">
+        <label style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-color);">
+          <div><div style="font-weight:500;font-size:var(--font-sm);">Email Notifications</div><div style="color:var(--text-tertiary);font-size:var(--font-xs);">Receive emails for updates</div></div>
+          <input type="checkbox" checked style="accent-color:var(--accent);" onchange="showToast('Preference saved','success')">
+        </label>
+        <label style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-color);">
+          <div><div style="font-weight:500;font-size:var(--font-sm);">Fee Reminders</div><div style="color:var(--text-tertiary);font-size:var(--font-xs);">Alerts for pending fees</div></div>
+          <input type="checkbox" checked style="accent-color:var(--accent);" onchange="showToast('Preference saved','success')">
+        </label>
+        <label style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-color);">
+          <div><div style="font-weight:500;font-size:var(--font-sm);">Attendance Alerts</div><div style="color:var(--text-tertiary);font-size:var(--font-xs);">Notify on absences</div></div>
+          <input type="checkbox" checked style="accent-color:var(--accent);" onchange="showToast('Preference saved','success')">
+        </label>
+        <label style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-color);">
+          <div><div style="font-weight:500;font-size:var(--font-sm);">Exam Deadlines</div><div style="color:var(--text-tertiary);font-size:var(--font-xs);">Reminders for exams</div></div>
+          <input type="checkbox" checked style="accent-color:var(--accent);" onchange="showToast('Preference saved','success')">
+        </label>
+        <label style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-color);">
+          <div><div style="font-weight:500;font-size:var(--font-sm);">Announcements</div><div style="color:var(--text-tertiary);font-size:var(--font-xs);">School-wide updates</div></div>
+          <input type="checkbox" checked style="accent-color:var(--accent);" onchange="showToast('Preference saved','success')">
+        </label>
+        <label style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;">
+          <div><div style="font-weight:500;font-size:var(--font-sm);">Push Notifications</div><div style="color:var(--text-tertiary);font-size:var(--font-xs);">Browser push alerts</div></div>
+          <input type="checkbox" checked style="accent-color:var(--accent);" onchange="showToast('Preference saved','success')">
+        </label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px;color:var(--accent);">Danger Zone</div>
+      <p style="font-size:var(--font-sm);color:var(--text-tertiary);margin-bottom:14px;">Once you delete your account, there is no going back.</p>
+      <button class="btn btn-secondary" style="border-color:var(--accent);color:var(--accent);" onclick="showToast('Contact admin','info')">Delete Account</button>
+    </div>
+  </div>
+</div>
+<script async>
+async function loadSettings(){
+  const prefs=await api('/api/settings/notification-preferences').catch(()=>({}));
+  Object.entries(prefs).forEach(([k,v])=>{const el=document.querySelector(`[onchange*="${k}"]`);if(el)el.checked=v;});
+  const user = getCurrentUser();
+  if (user) {
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+    setVal('setFirst', user.first_name);
+    setVal('setLast', user.last_name);
+    setVal('setEmail', user.email);
+    setVal('setPhone', user.phone_number);
+    const initials = ((user.first_name || 'U')[0] || 'U') + ' ' + ((user.last_name || '')[0] || 'D');
+    const avatar = document.getElementById('settings-avatar');
+    const nameEl = document.getElementById('settings-name');
+    const roleEl = document.getElementById('settings-role');
+    if (avatar) avatar.textContent = initials;
+    if (nameEl) nameEl.textContent = (user.first_name || '') + ' ' + (user.last_name || '');
+    if (roleEl) roleEl.textContent = user.role || 'User';
+  }
+}
+async function updateProfile(){
+  const p={first_name:$('#setFirst').value,last_name:$('#setLast').value,email:$('#setEmail').value,phone_number:$('#setPhone').value};
+  const res=await api('/api/settings/profile',{method:'PATCH',body:JSON.stringify(p)});
+  if(res.id){showToast('Profile updated','success');localStorage.setItem('classmate_user',JSON.stringify(res));loadSettings();}
+  else showToast(res.error||'Failed','error');
+}
+async function changePassword(){
+  const current=$('#cpCurrent').value;const newP=$('#cpNew').value;const confirm=$('#cpConfirm').value;
+  if(!current||!newP){showToast('Fill all fields','error');return}if(newP!==confirm){showToast('Passwords do not match','error');return}
+  const res=await api('/api/settings/change-password',{method:'POST',body:JSON.stringify({current_password:current,new_password:newP})});
+  if(res.message){showToast('Password changed','success');$('#cpCurrent').value='';$('#cpNew').value='';$('#cpConfirm').value='';}else showToast(res.error||'Failed','error');
+}
+document.addEventListener('DOMContentLoaded',loadSettings);</script>
+{% endblock %}

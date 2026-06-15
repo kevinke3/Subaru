@@ -1,0 +1,68 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Parent Portal</h1><p>Monitor your child's progress, attendance, and fees</p></div>
+</div>
+<div class="metrics-grid">
+  <div class="metric-card blue-accent"><div><div class="metric-icon blue"><i class="fas fa-child"></i></div><div class="metric-value">A-</div><div class="metric-label">Latest GPA</div></div></div>
+  <div class="metric-card green-accent"><div><div class="metric-icon green"><i class="fas fa-calendar-check"></i></div><div class="metric-value">96%</div><div class="metric-label">Attendance Rate</div></div></div>
+  <div class="metric-card orange-accent"><div><div class="metric-icon orange"><i class="fas fa-credit-card"></i></div><div class="metric-value">KES 8,000</div><div class="metric-label">Balance Due</div></div></div>
+  <div class="metric-card red-accent"><div><div class="metric-icon red"><i class="fas fa-trophy"></i></div><div class="metric-value">3rd</div><div class="metric-label">Class Rank</div></div></div>
+</div>
+<div class="dashboard-2col" style="margin-bottom:20px;">
+  <div>
+    <div class="table-wrapper" style="margin-bottom:16px;">
+      <div class="table-toolbar"><span style="font-weight:600;">Recent Grades - Term 2</span></div>
+      <div class="table-scroll"><table><thead><tr><th>Subject</th><th>Marks</th><th>Grade</th><th>Teacher</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:500;">Mathematics</td><td>88</td><td><span class="badge badge-success">A</span></td><td style="color:var(--text-secondary);font-size:var(--font-sm);">Mr. Kamau</td></tr>
+          <tr><td style="font-weight:500;">English</td><td>75</td><td><span class="badge badge-info">B+</span></td><td style="color:var(--text-secondary);font-size:var(--font-sm);">Ms. Njeri</td></tr>
+          <tr><td style="font-weight:500;">Science</td><td>82</td><td><span class="badge badge-success">A-</span></td><td style="color:var(--text-secondary);font-size:var(--font-sm);">Dr. Otieno</td></tr>
+          <tr><td style="font-weight:500;">Kiswahili</td><td>91</td><td><span class="badge badge-success">A</span></td><td style="color:var(--text-secondary);font-size:var(--font-sm);">Mme. Achieng'</td></tr>
+          <tr><td style="font-weight:500;">History</td><td>70</td><td><span class="badge badge-warning">B</span></td><td style="color:var(--text-secondary);font-size:var(--font-sm);">Mr. Wainaina</td></tr>
+        </tbody></table></div>
+    </div>
+    <div class="table-wrapper">
+      <div class="table-toolbar"><span style="font-weight:600;">Fee Balance</span><span class="badge badge-warning">KES 8,000 unpaid</span></div>
+      <div class="table-scroll"><table><thead><tr><th>Invoice</th><th>Term</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Due</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:500;">INV-000012</td><td>Term 2</td><td>KES 25,000</td><td>KES 17,000</td><td style="font-weight:600;color:var(--accent);">KES 8,000</td><td>2025-04-10</td><td><button class="btn btn-primary btn-sm" onclick="showToast('M-Pesa payment initiated','success')"><i class="fas fa-credit-card"></i> Pay Now</button></td></tr>
+        </tbody></table></div>
+    </div>
+  </div>
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title" style="margin-bottom:12px;">Attendance Trend</div>
+      <div style="height:220px;"><canvas id="chart-parent-att"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;">Recent Announcements</div>
+      <div class="event-item"><div class="event-dot" style="background:var(--accent);"></div><div class="event-content"><div class="event-title">Mid-Term Exam Schedule</div><div class="event-time">Posted 2 days ago</div></div></div>
+      <div class="event-item"><div class="event-dot" style="background:var(--info);"></div><div class="event-content"><div class="event-title">Parent-Teacher Meeting (Fri)</div><div class="event-time">Posted 3 days ago</div></div></div>
+      <div class="event-item" style="border:none;"><div class="event-dot" style="background:var(--success);"></div><div class="event-content"><div class="event-title">Term 2 Results Released</div><div class="event-time">Posted last week</div></div></div>
+    </div>
+  </div>
+</div>
+<div class="card" style="margin-top:4px;">
+  <div class="card-title" style="margin-bottom:14px;">Quick Actions</div>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;">
+    <button class="btn btn-primary" onclick="openModal('payFeesModal')"><i class="fas fa-credit-card"></i> Pay Fees</button>
+    <button class="btn btn-secondary" onclick="navigateTo('messages')"><i class="fas fa-envelope"></i> Message Teacher</button>
+    <button class="btn btn-secondary" onclick="showToast('Report downloading','info')"><i class="fas fa-file-lines"></i> Download Report</button>
+  </div>
+</div>
+<div class="modal-overlay" id="payFeesModal">
+  <div class="modal"><div class="modal-header"><h3>Pay Fees - M-Pesa</h3><button class="icon-btn" onclick="closeModal('payFeesModal')"><i class="fas fa-times"></i></button></div><div class="modal-body">
+    <div class="form-group"><label class="form-label">Invoice</label><input type="text" class="form-input" value="INV-000012 - Term 2 Fees" disabled></div>
+    <div class="form-group"><label class="form-label">Amount to Pay (KES)</label><input type="number" class="form-input" value="8000" id="payAmt"></div>
+    <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" class="form-input" placeholder="+254 7XX XXX XXX" id="payPhone"></div>
+    <p style="font-size:var(--font-xs);color:var(--text-tertiary);">You will receive an M-Pesa prompt on your phone to complete payment.</p>
+  </div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('payFeesModal')">Cancel</button><button class="btn btn-primary" onclick="initiateMpesa()">Pay with M-Pesa</button></div></div>
+</div>
+<script>
+function initiateMpesa(){const p={amount:parseFloat($('#payAmt').value),phone:$('#payPhone').value};if(!p.amount||!p.phone){showToast('Fill all fields','error');return}showToast('M-Pesa prompt sent!','success');closeModal('payFeesModal');}
+document.addEventListener('DOMContentLoaded',()=>{
+  const c=document.getElementById('chart-parent-att');
+  if(c&&!c.dataset.initialized){c.dataset.initialized='true';new Chart(c,{type:'line',data:{labels:['Week 1','Week 2','Week 3','Week 4','Week 5','Week 6','Week 7','Week 8'],datasets:[{label:'Present',data:[5,5,4,5,5,5,3,5],borderColor:'#0fb06b',backgroundColor:'rgba(15,176,107,0.06)',tension:0.4,fill:true,borderWidth:2,pointRadius:3,pointBackgroundColor:'#0fb06b'},{label:'Absent',data:[0,0,1,0,0,0,2,0],borderColor:'#ff2d55',backgroundColor:'rgba(255,45,85,0.06)',tension:0.4,fill:true,borderWidth:2,pointRadius:3,pointBackgroundColor:'#ff2d55'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{family:'Outfit',size:11},usePointStyle:true,padding:12}}},scales:{x:{grid:{display:false},ticks:{color:'rgba(0,0,0,0.45)',font:{family:'Outfit',size:11}}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{stepSize:1,color:'rgba(0,0,0,0.45)',font:{family:'Outfit',size:11}}}}}});}
+});</script>
+{% endblock %}

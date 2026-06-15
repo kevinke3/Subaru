@@ -1,0 +1,46 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Student Portal</h1><p>Your academic overview, assignments, and timetable</p></div>
+</div>
+<div class="metrics-grid">
+  <div class="metric-card blue-accent"><div><div class="metric-icon blue"><i class="fas fa-chart-line"></i></div><div class="metric-value">A-</div><div class="metric-label">Current GPA</div></div></div>
+  <div class="metric-card green-accent"><div><div class="metric-icon green"><i class="fas fa-calendar-check"></i></div><div class="metric-value">94%</div><div class="metric-label">Attendance</div></div></div>
+  <div class="metric-card orange-accent"><div><div class="metric-icon orange"><i class="fas fa-books"></i></div><div class="metric-value">3</div><div class="metric-label">Pending Assignments</div></div></div>
+  <div class="metric-card red-accent"><div><div class="metric-icon red"><i class="fas fa-balance-scale"></i></div><div class="metric-value">12</div><div class="metric-label">Class Rank</div></div></div>
+</div>
+<div class="dashboard-2col" style="margin-bottom:20px;">
+  <div class="chart-container"><h4>Performance Trend</h4><div class="chart-sub">Subject scores over time</div><div style="height:260px;"><canvas id="chart-student-perf"></canvas></div></div>
+  <div class="card"><div class="card-title" style="margin-bottom:12px;">Upcoming Assignments</div>
+    <div class="event-item"><div class="event-dot" style="background:var(--warning);"></div><div class="event-content"><div class="event-title">Mathematics - Algebra HW</div><div class="event-time">Due tomorrow</div></div></div>
+    <div class="event-item"><div class="event-dot" style="background:var(--warning);"></div><div class="event-content"><div class="event-title">English - Essay Submission</div><div class="event-time">Due in 3 days</div></div></div>
+    <div class="event-item"><div class="event-dot" style="background:var(--info);"></div><div class="event-content"><div class="event-title">Science Lab Report</div><div class="event-time">Due next week</div></div></div>
+    <div class="event-item" style="border:none;"><div class="event-dot" style="background:var(--success);"></div><div class="event-content"><div class="event-title">History Project (Submitted)</div><div class="event-time">Completed</div></div></div>
+  </div>
+</div>
+<div class="table-wrapper">
+  <div class="table-toolbar"><span style="font-weight:600;">My Timetable - Grade 8</span></div>
+  <div class="table-scroll"><table><thead><tr><th>Day</th><th>Period 1</th><th>Period 2</th><th>Period 3</th><th>Period 4</th></tr></thead>
+    <tbody>
+      <tr><td style="font-weight:600;">Monday</td><td>Mathematics</td><td>English</td><td>Sciences</td><td>Mathematics</td></tr>
+      <tr><td style="font-weight:600;">Tuesday</td><td>Kiswahili</td><td>Social Studies</td><td>Religious Ed.</td><td>English</td></tr>
+      <tr><td style="font-weight:600;">Wednesday</td><td>Mathematics</td><td>Science</td><td>Kiswahili</td><td>ICT</td></tr>
+      <tr><td style="font-weight:600;">Thursday</td><td>English</td><td>Mathematics</td><td>History</td><td>Geography</td></tr>
+      <tr><td style="font-weight:600;">Friday</td><td>GAMES</td><td>CREATIVE ARTS</td><td>MUSIC</td><td>CLUBS</td></tr>
+    </tbody></table></div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const c = document.getElementById('chart-student-perf');
+  if (c && !c.dataset.initialized) {
+    c.dataset.initialized='true';
+    new Chart(c, { type:'radar', data:{
+      labels:['Mathematics','English','Science','Kiswahili','History','Geography','ICT','CRE'],
+      datasets:[
+        {label:'This Term',data:[85,78,72,90,68,65,82,75],borderColor:'#ff2d55',backgroundColor:'rgba(255,45,85,0.1)',pointBackgroundColor:'#ff2d55'},
+        {label:'Last Term',data:[80,82,70,85,72,70,78,72],borderColor:'rgba(0,0,0,0.15)',backgroundColor:'rgba(0,0,0,0.03)',pointBackgroundColor:'rgba(0,0,0,0.15)'}
+      ]
+    }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Outfit',size:12},usePointStyle:true,padding:16 } } }, scales:{ r:{ ticks:{ display:false, stepSize:20 }, grid:{color:'rgba(0,0,0,0.05)'}, angleLines:{color:'rgba(0,0,0,0.05)'}, pointLabels:{font:{family:'Outfit',size:12},color:'rgba(0,0,0,0.7)'} } } }});
+  }
+});</script>
+{% endblock %}

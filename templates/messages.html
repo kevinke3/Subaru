@@ -1,0 +1,82 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Messages</h1><p>Communicate with teachers, students, and parents</p></div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn btn-secondary" onclick="openModal('newConvModal')"><i class="fas fa-plus"></i> New Conversation</button>
+    <button class="btn btn-primary" onclick="openModal('newAnnounceModal')"><i class="fas fa-bullhorn"></i> Announcement</button>
+  </div>
+</div>
+<div style="display:flex;gap:0;height:calc(100vh - 200px);background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-md);overflow:hidden;" id="messageApp">
+  <div style="width:300px;border-right:1px solid var(--border-color);display:flex;flex-direction:column;flex-shrink:0;" id="messageSidebar">
+    <div style="padding:14px;border-bottom:1px solid var(--border-color);"><input type="text" class="form-input" placeholder="Search conversations..." id="searchConv"></div>
+    <div style="padding:8px;border-bottom:1px solid var(--border-color);"><div class="tabs" style="width:100%;"><button class="tab active" onclick="showConvTab('all',this)" style="flex:1;text-align:center;">All</button><button class="tab" onclick="showConvTab('unread',this)" style="flex:1;text-align:center;"><i class="fas fa-circle" style="font-size:6px;vertical-align:middle;color:#ff2d55;margin-right:3px;"></i>Unread</button></div></div>
+    <div id="conv-list" style="flex:1;overflow-y:auto;">Loading...</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;min-width:0;" id="chatPane">
+    <div id="emptyChat" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-tertiary);">
+      <svg style="width:72px;height:72px;margin-bottom:16px;opacity:0.3;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-3.046.668l-3.34 1.33 1.122-2.927A8.897 8.897 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+      <p style="font-weight:500;color:var(--text-secondary);">Select a conversation</p>
+    </div>
+    <div id="chatMessages" style="flex:1;overflow-y:auto;display:none;padding:20px;"></div>
+    <div id="chatInput" style="padding:14px;border-top:1px solid var(--border-color);display:none;gap:10px;">
+      <input type="text" class="form-input" placeholder="Type a message..." id="msgInput" style="flex:1;" onkeydown="if(event.key==='Enter')sendMessage()">
+      <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="newConvModal">
+  <div class="modal"><div class="modal-header"><h3>New Conversation</h3><button class="icon-btn" onclick="closeModal('newConvModal')"><i class="fas fa-times"></i></button></div><div class="modal-body">
+    <div class="form-group"><label class="form-label">Start conversation with (user ID)</label><input type="number" class="form-input" id="convWith" placeholder="User ID"></div></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('newConvModal')">Cancel</button><button class="btn btn-primary" onclick="startConversation()">Start</button></div></div>
+</div>
+<div class="modal-overlay" id="newAnnounceModal">
+  <div class="modal"><div class="modal-header"><h3>New Announcement</h3><button class="icon-btn" onclick="closeModal('newAnnounceModal')"><i class="fas fa-times"></i></button></div><div class="modal-body">
+    <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" id="annTitle"></div>
+    <div class="form-group"><label class="form-label">Body</label><textarea class="form-input" id="annBody" placeholder="Announcement details..."></textarea></div>
+    <div class="form-group"><label class="form-label">Priority</label><select class="form-input" id="annPriority"><option>Normal</option><option>Important</option><option>Urgent</option></select></div>
+  </div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('newAnnounceModal')">Cancel</button><button class="btn btn-primary" onclick="createAnnouncement()">Post</button></div></div>
+</div>
+<script async>
+let currentConv = null;
+async function loadConversations(){
+  const res = await api('/api/messaging/conversations');
+  if(!Array.isArray(res)){return;}
+  const q=(document.getElementById('searchConv')?.value||'').toLowerCase(); const tab='all';
+  const list = q ? res.filter(c=>(c.participant||'').toLowerCase().includes(q)||(c.last_message||'').toLowerCase().includes(q)) : res;
+  const el=$('#conv-list'); if(!el)return;
+  el.innerHTML = list.map(c => `<div class="table-row" onclick="openConv(${c.id},'${(c.participant||'').replace(/'/g,"\\'")}')" style="cursor:pointer;">
+    <div class="avatar" style="background:linear-gradient(135deg,${String(Math.random()*360|0).toString()},#ff2d55);color:#fff;">${(c.participant||'?').split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+    <div class="info"><div class="name">${c.participant||'Unknown'}</div><div class="sub">${c.last_message||''}</div></div>
+    <div class="action">${c.unread_count>0?`<span class="badge badge-danger" style="min-width:18px;text-align:center;font-size:10px;">${c.unread_count}</span>`:''}</div>
+  </div>`).join('');
+  if(!list.length) el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-tertiary);font-size:var(--font-sm);">No conversations</div>';
+}
+function openConv(id,name) {
+  currentConv = id;
+  $('#'+name)?.remove();
+  $('#emptyChat').style.display = 'none';
+  const cm = $('#chatMessages'); cm.style.display = 'block'; $('#chatInput').style.display = 'flex';
+  api('/api/messaging/conversations/'+id+'/messages').then(msgs => {
+    if(!Array.isArray(msgs)) return;
+    cm.innerHTML = msgs.map(m => {
+      const mine = m.sender === name || (!m.sender);
+      return `<div style="display:flex;${mine?'justify-content:flex-end;':''}margin-bottom:10px;"><div style="max-width:65%;padding:10px 14px;border-radius:14px;${mine?'background:var(--accent);color:#fff;border-bottom-right-radius:4px;':''}">${m.body}</div></div>`;
+    }).join('');
+    cm.scrollTop = cm.scrollHeight;
+  });
+}
+async function sendMessage() {
+  const input=$('#msgInput'); const body=input.value.trim();
+  if(!body||!currentConv) return;
+  input.value='';
+  const res=await api('/api/messaging/conversations/'+currentConv+'/messages',{method:'POST',body:JSON.stringify({body})});
+  if(res.id){ const cm=$('#chatMessages');cm.innerHTML+=`<div style="display:flex;justify-content:flex-end;margin-bottom:10px;"><div style="max-width:65%;padding:10px 14px;background:var(--accent);color:#fff;border-radius:14px;border-bottom-right-radius:4px;">${body}</div></div>`;cm.scrollTop=cm.scrollHeight;loadConversations();}
+}
+async function startConversation(){const pid=$('#convWith').value;if(!pid){showToast('Enter user ID','error');return}const res=await api('/api/messaging/conversations',{method:'POST',body:JSON.stringify({participant_id:parseInt(pid)})});if(res.id){showToast('Conversation started','success');closeModal('newConvModal');loadConversations()}else showToast(res.error||'Failed','error');}
+async function createAnnouncement(){const p={title:$('#annTitle').value,body:$('#annBody').value,priority:$('#annPriority').value};if(!p.title||!p.body){showToast('Fill all fields','error');return}const res=await api('/api/messaging/announcements',{method:'POST',body:JSON.stringify(p)});if(res.id){showToast('Announcement posted','success');closeModal('newAnnounceModal')}else showToast(res.error||'Failed','error');}
+$('#searchConv').addEventListener('input',loadConversations);
+function showConvTab(which,el){document.querySelectorAll('#messageSidebar .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
+document.addEventListener('DOMContentLoaded',loadConversations);
+</script>
+{% endblock %}

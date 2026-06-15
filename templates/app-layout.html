@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · ClassMate{% endblock %}
+
+{% block body %}
+{% set role = 'Admin' %}
+<div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;display:none;" class="sidebar-backdrop"></div>
+
+<nav class="sidebar">
+  <div class="logo-area">
+    <div class="logo-icon">C</div>
+    <span class="logo-text">ClassMate</span>
+  </div>
+  <div class="nav-section">
+    {% set sections = [
+      ('Main', [('Dashboard','dashboard','fa-solid fa-gauge-high'),('Students','students','fa-solid fa-user-group'),('Teachers','teachers','fa-solid fa-chalkboard-user'),('Academics','academics','fa-solid fa-book-open'),('Attendance','attendance','fa-solid fa-calendar-check'),('Finance','finance','fa-solid fa-credit-card'),('Examinations','exams','fa-solid fa-file-lines'),('Messages','messages','fa-solid fa-envelope')]),
+      ('Portals', [('Admin','administration','fa-solid fa-shield-halved'),('Teacher Portal','teacher-portal','fa-solid fa-chalkboard'),('Student Portal','student-portal','fa-solid fa-user-graduate'),('Parent Portal','parent-portal','fa-solid fa-people-roof')]),
+      ('System', [('Settings','settings','fa-solid fa-gear'),('Notifications','notifications','fa-solid fa-bell')])
+    ] %}
+    {% for label, items in sections %}
+    <div class="nav-label">{{ label }}</div>
+    {% for name, route, icon in items %}
+    <div class="nav-item" onclick="document.querySelector('.sidebar').classList.remove('mobile-open');document.querySelector('.sidebar-backdrop')?.classList.remove('active');navigateTo('{{ route }}')">
+      <span class="icon"><i class="{{ icon }}"></i></span>
+      <span class="label">{{ name }}</span>
+    </div>
+    {% endfor %}
+    {% endfor %}
+  </div>
+  <button class="toggle-btn sidebar-toggle" aria-label="Toggle sidebar"><i class="fa-solid fa-chevron-left"></i></button>
+</nav>
+
+<div class="main-container">
+  <header class="top-bar">
+    <button class="icon-btn mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.add('mobile-open');document.querySelector('.sidebar-backdrop')?.classList.add('active')"><i class="fa-solid fa-bars"></i></button>
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass" style="color:var(--text-tertiary);font-size:13px;"></i>
+      <input type="text" placeholder="Search students, teachers, classes...">
+    </div>
+    <div class="actions">
+      <button class="icon-btn"><i class="fa-solid fa-bell"></i><span class="dot"></span></button>
+      <button class="icon-btn"><i class="fa-solid fa-moon"></i></button>
+      <div class="user-menu has-dropdown">
+        <div class="user-avatar" id="topbar-avatar">A D</div>
+        <span style="font-size:var(--font-sm);font-weight:500;" id="topbar-name">User</span>
+        <button class="icon-btn"><i class="fa-solid fa-chevron-down" style="font-size:10px;"></i></button>
+        <div class="dropdown-menu">
+          <div class="dropdown-item" onclick="navigateTo('settings')"><i class="fa-solid fa-gear"></i> Settings</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

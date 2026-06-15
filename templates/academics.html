@@ -1,0 +1,51 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Academics</h1><p>Classes, timetable, subjects, and assignments</p></div>
+  <button class="btn btn-primary" onclick="openModal('newClassModal')"><i class="fas fa-plus"></i> New Class</button>
+</div>
+<div class="tabs" style="margin-bottom:20px;">
+  <button class="tab active" onclick="switchTab(this,'tab-classes',this.textContent)">Classes</button>
+  <button class="tab" onclick="switchTab(this,'tab-timetable',this.textContent)">Timetable</button>
+  <button class="tab" onclick="switchTab(this,'tab-subjects',this.textContent)">Subjects</button>
+  <button class="tab" onclick="switchTab(this,'tab-assignments',this.textContent)">Assignments</button>
+</div>
+<div class="grid grid-3" id="tab-classes">
+  <div class="skeleton skeleton-card" style="grid-column:1/-1;height:120px;"></div>
+  <div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>
+</div>
+<div id="tab-timetable" style="display:none;"><div class="table-wrapper"><div class="table-scroll"><table><thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Teacher</th><th>Class</th></tr></thead><tbody id="tt-tbody"><tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-tertiary);">Loading...</td></tr></tbody></table></div></div></div>
+<div id="tab-subjects" style="display:none;"><div class="grid grid-3" id="subjects-grid"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div></div>
+<div id="tab-assignments" style="display:none;"><div class="table-wrapper"><div class="table-scroll"><table><thead><tr><th>Title</th><th>Class</th><th>Subject</th><th>Due</th><th>Max Score</th></tr></thead><tbody><tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-tertiary);">No assignments yet</td></tr></tbody></table></div></div></div>
+<div class="modal-overlay" id="newClassModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Create Class</h3><button class="icon-btn" onclick="closeModal('newClassModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Class Name</label><input type="text" class="form-input" id="clsName" placeholder="e.g. Form 1 North"></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Grade Level</label><select class="form-input" id="clsGrade"><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option></select></div><div class="form-group"><label class="form-label">Capacity</label><input type="number" class="form-input" id="clsCap" value="40"></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('newClassModal')">Cancel</button><button class="btn btn-primary" onclick="createClass()">Create</button></div>
+  </div>
+</div>
+<script>
+function switchTab(btn,tabId,label) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  ['tab-classes','tab-timetable','tab-subjects','tab-assignments'].forEach(id=>{const el=$('#'+id);if(el)el.style.display=id===tabId?'contents':'none';});
+}
+async function loadAcademics() {
+  const [classes,subjects,tt] = await Promise.all([api('/api/academics/classes').catch(()=>[]),api('/api/academics/subjects').catch(()=>[]),api('/api/academics/timetable').catch(()=>[])]);
+  const cg=$('#tab-classes'); if(cg&&Array.isArray(classes)){cg.innerHTML=classes.map(c=>`<div class="card" style="cursor:pointer;"><div class="card-title">${c.name}</div><div class="card-subtitle">Grade ${c.grade_level}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;"><span style="font-size:var(--font-xs);color:var(--text-tertiary);">${c.student_count} students</span><span class="badge badge-neutral">${c.capacity} capacity</span></div></div>`).join('')||'<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-tertiary);">No classes created</div>';}
+  const sg=$('#subjects-grid'); if(sg&&Array.isArray(subjects)){sg.innerHTML=subjects.map(s=>`<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="width:36px;height:36px;background:var(--accent-light);color:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">${s.code.slice(0,2)}</div><div><div style="font-weight:600;font-size:var(--font-sm);">${s.name}</div><div style="font-size:var(--font-xs);color:var(--text-tertiary);">${s.code}</div></div></div></div>`).join('')||'<div style="grid-column:1/-1;">No subjects</div>';}
+  const tb=$('#tt-tbody'); if(tb&&Array.isArray(tt)){tb.innerHTML=tt.map(t=>`<tr><td><span style="font-weight:500;">${t.day}</span></td><td>${t.start_time} - ${t.end_time}</td><td>${t.subject}</td><td>${t.teacher}</td><td>${t.class_name}</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:32px;">No timetable entries</td></tr>';}
+}
+async function createClass() {
+  const p={name:$('#clsName').value,grade_level:$('#clsGrade').value,capacity:parseInt($('#clsCap').value)||40};
+  if(!p.name){showToast('Class name is required','error');return}
+  try{
+    const res=await api('/api/academics/classes',{method:'POST',body:JSON.stringify(p)});
+    if(res.id){showToast('Class created','success');closeModal('newClassModal');loadAcademics()}else showToast(res.error||'Failed','error');
+  }catch(e){showToast(e.message||'Error','error');}
+}
+document.addEventListener('DOMContentLoaded',loadAcademics);</script>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<style>
+  .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin: 24px 0; }
+  .dashboard-2col { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 1200px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } .dashboard-2col { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) { .metrics-grid { grid-template-columns: 1fr; } }
+  .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .right-col { display: grid; gap: 16px; }
+  .table-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: var(--font-sm); }
+  .table-row:last-child { border-bottom: none; }
+  .table-row .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .table-row .title { font-weight: 500; }
+  .table-row .time { color: var(--text-tertiary); font-size: var(--font-xs); margin-top: 1px; }
+</style>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <h1 style="font-size:var(--font-3xl);font-weight:700;letter-spacing:-0.03em;">Administration</h1>
+    <p style="color:var(--text-tertiary);font-size:var(--font-sm);margin-top:2px;">School overview, operations, admissions, and analytics</p>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn btn-secondary" onclick="showToast('Report exporting...','info')"><i class="fas fa-download"></i> Export Report</button>
+    <button class="btn btn-primary" onclick="openModal('addUserModal')"><i class="fas fa-user-plus"></i> Add User</button>
+  </div>
+</div>
+
+<div class="metrics-grid" id="metrics-grid">
+  <div class="skeleton" style="height:120px;"></div>
+  <div class="skeleton" style="height:120px;"></div>
+  <div class="skeleton" style="height:120px;"></div>
+  <div class="skeleton" style="height:120px;"></div>
+</div>
+
+<div class="dashboard-2col">
+  <div>
+    <div class="quick-actions">
+      <button class="chip" onclick="navigateTo('students')"><i class="fas fa-user-plus"></i> Add Student</button>
+      <button class="chip" onclick="navigateTo('finance')"><i class="fas fa-credit-card"></i> Collect Fees</button>
+      <button class="chip" onclick="navigateTo('exams')"><i class="fas fa-file-lines"></i> Exams</button>
+      <button class="chip" onclick="navigateTo('messages')"><i class="fas fa-envelope"></i> Messages</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Revenue Trend</div>
+      <div class="card-subtitle">Term-over-term financial performance</div>
+      <div style="height:260px;position:relative;"><canvas id="chart-admin-revenue"></canvas></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">Recent Audit Activity</div>
+      <div class="card-subtitle">Latest system events</div>
+      <div id="recent-activity">
+        <div class="table-row"><div class="dot" style="background:var(--accent);"></div><div><div class="title">New student registered</div><div class="time">2 minutes ago</div></div></div>
+        <div class="table-row"><div class="dot" style="background:var(--success);"></div><div><div class="title">Payment of KES 15,000 recorded</div><div class="time">15 minutes ago</div></div></div>
+        <div class="table-row"><div class="dot" style="background:var(--info);"></div><div><div class="title">Exam schedule published</div><div class="time">1 hour ago</div></div></div>
+        <div class="table-row"><div class="dot" style="background:var(--warning);"></div><div><div class="title">Teacher attendance updated</div><div class="time">2 hours ago</div></div></div>
+        <div class="table-row"><div class="dot" style="background:var(--accent);"></div><div><div class="title">New announcement posted</div><div class="time">3 hours ago</div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="right-col">
+    <div class="card">
+      <div class="card-title">Student Distribution</div>
+      <div class="card-subtitle">By grade level</div>
+      <div style="height:240px;position:relative;"><canvas id="chart-admin-dist"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Admissions</div>
+      <div class="card-subtitle">Recent applications</div>
+      <div class="table-row"><div><div class="title">Jane Wambui</div><div class="time">Grade 7 · ADM-2024-001</div></div><span class="badge badge-success">Approved</span></div>
+      <div class="table-row"><div><div class="title">Michael Kiprop</div><div class="time">Grade 8 · ADM-2024-002</div></div><span class="badge badge-warning">Pending</span></div>
+      <div class="table-row"><div><div class="title">Sarah Ochieng</div><div class="time">Grade 7 · ADM-2024-003</div></div><span class="badge badge-success">Approved</span></div>
+      <div class="table-row"><div><div class="title">Ali Noor</div><div class="time">Grade 9 · ADM-2024-004</div></div><span class="badge badge-info">Under Review</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Quick Actions</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="chip" onclick="openModal('addUserModal')"><i class="fas fa-user-plus"></i> Add User</button>
+        <button class="chip" onclick="navigateTo('academics')"><i class="fas fa-book"></i> Classes</button>
+        <button class="chip" onclick="navigateTo('finance')"><i class="fas fa-coins"></i> Finance</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add New User</h3><button class="icon-btn" onclick="closeModal('addUserModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="uFirst"></div><div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="uLast"></div></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="uEmail"></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Role</label><select class="form-input" id="uRole"><option>Student</option><option>Teacher</option><option>Parent</option><option>Admin</option></select></div><div class="form-group"><label class="form-label">Phone</label><input type="tel" class="form-input" id="uPhone"></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addUserModal')">Cancel</button><button class="btn btn-primary" onclick="addUser()">Add User</button></div>
+  </div>
+</div>
+
+<script>
+async function addUser() {
+  const p = { first_name: $('#uFirst').value, last_name: $('#uLast').value, email: $('#uEmail').value, phone_number: $('#uPhone').value, role: $('#uRole').value, password: 'changeme123' };
+  if (!p.first_name || !p.last_name || !p.email) { showToast('Missing fields', 'error'); return; }
+  const res = await api('/api/auth/register', { method: 'POST', body: JSON.stringify(p) });
+  if (res.id) { showToast('User created', 'success'); closeModal('addUserModal'); } else showToast(res.error || 'Failed', 'error');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  api('/api/analytics/dashboard').then(d => {
+    const container = document.getElementById('metrics-grid');
+    if (!container) return;
+    const cards = [
+      { label: 'Total Students', value: d.total_students || 0, icon: 'fa-school', color: 'blue', trend: '+5.2%', up: true },
+      { label: 'Teaching Staff', value: d.total_teachers || 0, icon: 'fa-user-tie', color: 'green', trend: '+2', up: true },
+      { label: 'Revenue (KES)', value: (d.revenue_collected || 0).toLocaleString(), icon: 'fa-money-bill-wave', color: 'red', trend: '+8.7%', up: true },
+      { label: 'Pending Invoices', value: d.pending_invoices || 0, icon: 'fa-file-invoice', color: 'orange', trend: '-3', up: true },
+    ];
+    container.innerHTML = '';
+    cards.forEach(c => {
+      container.innerHTML += `
+        <div class="metric-card ${c.color}-accent">
+          <div>
+            <div class="metric-icon ${c.color}"><i class="fas ${c.icon}"></i></div>
+            <div class="metric-value counter" data-target="${typeof c.value === 'number' ? c.value : 0}">0</div>
+            <div class="metric-label">${c.label}</div>
+            <div class="metric-trend up"><i class="fas fa-arrow-up"></i> ${c.trend}</div>
+          </div>
+        </div>`;
+    });
+    animateCounters();
+  });
+
+  const revC = document.getElementById('chart-admin-revenue');
+  if (revC && !revC.dataset.initialized) {
+    revC.dataset.initialized = 'true';
+    new Chart(revC, {
+      type: 'line',
+      data: {
+        labels: ['T1 24', 'T2 24', 'T3 24', 'T1 25', 'T2 25'],
+        datasets: [{
+          label: 'Revenue (KES)', data: [3200000, 3600000, 3800000, 4100000, 4500000],
+          borderColor: '#ff2d55', backgroundColor: 'rgba(255,45,85,0.06)',
+          fill: true, tension: 0.4, borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#ff2d55'
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: 'rgba(0,0,0,0.45)' } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: 'rgba(0,0,0,0.45)', callback: v => 'KES ' + (v/1000000).toFixed(1) + 'M' } } } }
+    });
+  }
+
+  const distC = document.getElementById('chart-admin-dist');
+  if (distC && !distC.dataset.initialized) {
+    distC.dataset.initialized = 'true';
+    new Chart(distC, {
+      type: 'doughnut',
+      data: {
+        labels: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+        datasets: [{
+          data: [210, 195, 180, 175, 155, 148],
+          backgroundColor: ['#ff2d55', 'rgba(255,45,85,0.75)', 'rgba(255,45,85,0.6)', 'rgba(255,45,85,0.85)', 'rgba(255,45,85,0.5)', 'rgba(255,45,85,0.4)'],
+          borderColor: '#fff', borderWidth: 3, hoverOffset: 4
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { font: { family: 'Outfit', size: 12 }, usePointStyle: true, padding: 12 } } } }
+    });
+  }
+});
+</script>
+{% endblock %}

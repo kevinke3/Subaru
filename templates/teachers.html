@@ -1,0 +1,64 @@
+{% extends "app-layout.html" %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Teachers</h1><p>Manage teaching staff and assignments</p></div>
+  <button class="btn btn-primary" onclick="openModal('newTeacherModal')"><i class="fas fa-plus"></i> Add Teacher</button>
+</div>
+<div class="table-wrapper">
+  <div class="table-toolbar">
+    <span style="font-weight:600;">All Teachers</span>
+    <div style="display:flex;gap:8px;">
+      <div class="search-box" style="width:200px;padding:6px 10px;"><i class="fas fa-magnifying-glass" style="font-size:11px;"></i><input placeholder="Search..." style="font-size:var(--font-sm);" id="searchTeacher"></div>
+      <select class="form-input" style="width:auto;min-width:140px;font-size:var(--font-sm);padding:8px 10px;" id="filterDept"><option value="">All Departments</option><option>Mathematics</option><option>Sciences</option><option>Languages</option><option>Humanities</option><option>ICT</option></select>
+    </div>
+  </div>
+  <div class="table-scroll">
+    <table><thead><tr><th>Teacher</th><th>Employee No.</th><th>Department</th><th>Qualification</th><th>Specialization</th><th>Actions</th></tr></thead>
+      <tbody id="teachers-tbody"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-tertiary);">Loading...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+<div class="modal-overlay" id="newTeacherModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Register Teacher</h3><button class="icon-btn" onclick="closeModal('newTeacherModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="tFirst"></div><div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="tLast"></div></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="tEmail"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input type="tel" class="form-input" id="tPhone"></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Employee No.</label><input class="form-input" id="tEmp" placeholder="EMP-001"></div><div class="form-group"><label class="form-label">Department</label><select class="form-input" id="tDept"><option>Mathematics</option><option>Sciences</option><option>Languages</option><option>Humanities</option><option>ICT</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Qualification</label><input class="form-input" id="tQual" placeholder="M.Sc Mathematics"></div><div class="form-group"><label class="form-label">Specialization</label><input class="form-input" id="tSpec"></div></div>
+      <div class="form-group"><label class="form-label">Default Password</label><input type="text" class="form-input" value="changeme123" disabled></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('newTeacherModal')">Cancel</button><button class="btn btn-primary" onclick="createTeacher()">Register Teacher</button></div>
+  </div>
+</div>
+<script async>
+async function loadTeachers() {
+  const res = await api('/api/teachers');
+  if (Array.isArray(res)) renderTeacherRows(res);
+}
+function renderTeacherRows(list) {
+  const tb=$('#teachers-tbody'); if(!tb)return;
+  if(!list.length){ tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-tertiary);">No teachers found</td></tr>'; return; }
+  tb.innerHTML=list.map(t=>`<tr>
+    <td><div style="display:flex;align-items:center;gap:12px;"><div class="avatar">${t.name.split(' ').map(n=>n[0]).join('').slice(0,2)}</div><span style="font-weight:500;">${t.name}</span></div></td>
+    <td><span style="font-family:monospace;font-size:var(--font-sm);">${t.employee_number}</span></td>
+    <td><span class="badge badge-neutral">${t.department}</span></td>
+    <td style="color:var(--text-secondary);font-size:var(--font-sm);">${t.qualification||'—'}</td>
+    <td style="font-size:var(--font-sm);">${t.specialization||'—'}</td>
+    <td><button class="icon-btn" onclick="showToast('Edit feature')"><i class="fas fa-pen"></i></button><button class="icon-btn" onclick="showToast('Delete feature')"><i class="fas fa-trash" style="color:var(--accent);"></i></button></td>
+  </tr>`).join('');
+  const countEl=document.getElementById('teacherCount'); if(countEl)countEl.textContent=`${list.length} teacher${list.length!==1?'s':''}`;
+}
+$('#searchTeacher').addEventListener('input',()=>{
+  const q=$('#searchTeacher').value.toLowerCase();
+  api('/api/teachers').then(r=>renderTeacherRows((Array.isArray(r)?r:[]).filter(t=>!q||t.name.toLowerCase().includes(q)||t.employee_number.toLowerCase().includes(q))));
+});
+$('#filterDept').addEventListener('change',()=>{
+  const dept=$('#filterDept').value;
+  api('/api/teachers').then(r=>renderTeacherRows((Array.isArray(r)?r:[]).filter(t=>!dept||t.department===dept)));
+});
+async function createTeacher(){ const p={first_name:$('#tFirst').value,last_name:$('#tLast').value,email:$('#tEmail').value,phone_number:$('#tPhone').value,employee_number:$('#tEmp').value,department:$('#tDept').value,qualification:$('#tQual').value,specialization:$('#tSpec').value}; if(!p.first_name||!p.last_name||!p.email||!p.employee_number){showToast('Missing fields','error');return} try{ const res=await api('/api/teachers',{method:'POST',body:JSON.stringify(p)}); if(res.id){showToast('Teacher registered','success');closeModal('newTeacherModal');loadTeachers()} else showToast(res.error||'Failed','error'); } catch(e){ showToast(e.message||'Error','error'); } }
+document.addEventListener('DOMContentLoaded',loadTeachers);
+</script>
+{% endblock %}
